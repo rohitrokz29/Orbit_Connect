@@ -37,8 +37,8 @@ const Signup = async (req, res) => {
                 if (err) throw Error(err);
                 const id = nanoid(50);
                 database.query(
-                    "INSERT INTO users VALUES (?,?,?,?,?,?);",
-                    [id, email, name, username, "", hash],
+                    "INSERT INTO users VALUES (?,?,?,?,?,?,?);",
+                    [id, email, name, username, "", hash, Math.floor(Math.random() * 10) + 1],
                     (err, result) => {
                         console.log(err);
                         console.log(result);
@@ -78,7 +78,7 @@ const Signin = async (req, res) => {
         database.query(
             `SELECT name,username,id,password FROM users WHERE username='${username}';`,
             async (error, result) => {
-                 console.log(result[0]);
+                console.log(result[0]);
                 if (error || result.length === 0) {
                     return res
                         .status(404)
@@ -97,7 +97,7 @@ const Signin = async (req, res) => {
                     .cookie("accessToken", token.accessToken, cookieOptions)
                     .cookie('userID', result[0].id, cookieOptions)
                     .status(200)
-                    .json({ id: result[0].id, name: result[0].name,username:result[0].username ,});
+                    .json({ id: result[0].id, name: result[0].name, username: result[0].username, });
             }
         );
     } catch (error) {
@@ -155,8 +155,6 @@ const ForgotPassword = async (req, res) => {
     }
 }
 
-
-
 const ResetPassword = async (req, res) => {
     try {
         const token_id = req.params.id;
@@ -198,10 +196,165 @@ const ResetPassword = async (req, res) => {
     }
 }
 
+const AddFriend = async (req, res) => {
+    try {
+        const { user1, user2 } = req.body;
+        database.query(
+            'INSERT INTO friends VALUES (?,?);',
+            [user1, user2],
+            (err, result) => {
+                if (err) {
+                    console.log(err);
+                    res.status(401).json({ message: "Server Error" });
+                    return;
+                }
+                if (result?.affectedRows !== 1) {
+                    console.log(result);
+                    res.status(200).json({ message: "Server Error" });
+                    return;
+                }
+                res.status(200).json({ message: "Added" })
+            }
+        )
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
+const FetchFriends = async (req, res) => {
+    try {
+        const { username } = req.params;
+        console.log({ username });
+        let friends = [];
+        database.query(
+            ` SELECT * from friends WHERE user1='${username}' OR user2='${username}';`,
+            async (err, result) => {
+                if (err) {
+                    console.log(err);
+                    res.status(201).json({ message: "Server Error" })
+                    return;
+                }
+                result = result.map(({ user1, user2 }) => {
+                    return `'${user1 === username ? user2 : user1}'`
+                })
+                database.query(
+                    `SELECT name ,username,profileImg FROM users WHERE username IN (${result.toString()});`,
+                    (err, userResult) => {
+                        if (err) {
+                            res.status(201).json({ message: "Server Error" });
+                            return;
+                        }
+                        res.status(200).json(userResult);
+                    }
+
+                )
+
+            }
+        )
+    } catch (error) {
+        return res.status(500).json({ message: "Server Error" });
+
+    }
+}
+
+const DeleteFriend = async (req, res) => {
+    try {
+        const { user, friend } = req.body;
+        database.query(
+            `DELETE FROM friends WHERE (user1 = '${user}' AND user2='${friend}') OR(user1='${friend}' AND user2='${user}');`,
+            (err, result) => {
+                if (err) {
+                    res.status(404).json({ message: "Not Found" });
+                    return;
+                }
+                res.status(200).json({ removed: true });
+            }
+        )
+    } catch (error) {
+        res.status(500).json({ message: "Error" });
+    }
+}
+
+const SearchUser = async (req, res) => {
+    try {
+        const { searchParam } = req.params;
+        database.query(
+            `SELECT username,name,profileImg FROM users WHERE username LIKE '%${searchParam}%' OR name LIKE '%${searchParam}%'; `,
+            (err, result) => {
+                console.log({ err, result });
+                if (err) {
+                    res.status(404).json({ message: 'Not Found' })
+                    return;
+                }
+                res.status(200).json(result);
+            }
+        )
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+}
+
+const UserProfile = async (req, res) => {
+    try {
+        const { username } = req.params
+        database.query(
+            `SELECT  name, username, description, profileImg FROM users WHERE username='${username}'; `,
+            (err, result) => {
+                if (err) {
+                    res.status(404).json({ message: "Not Found" });
+                    return;
+                }
+                res.status(200).json(result[0]);
+            }
+        )
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+}
+
+const EditUser = async (req, res) => {
+    try {
+        const { username, name, profileImg, description, password } = req.body;
+        database.query(
+            `SELECT * FROM users WHERE username='${username}';`,
+            async (err, result) => {
+                if (err) {
+                    res.status(404).json({ message: "NOT FOUND" });
+                    return;
+                }
+                let status = await bcrypt.compare(password, result[0]?.password);
+                if (!status) {
+                    res.status(201).json({ message: "Wrong Password" });
+                    return;
+                }
+                database.query(
+                    `UPDATE users SET name='${name}', profileImg='${profileImg}', description='${description}' WHERE username='${username}';`,
+                    (err, updatedResult) => {
+                        if (err || updatedResult.affectedRows !== 1) {
+                            res.status(400).json({ message: "Server Error" });
+                            return;
+                        }
+
+                        res.status(200).json({ updated: true });
+                    }
+                )
+            }
+        )
+    } catch (error) {
+        res.status(400).json({ message: "Server Error" });
+    }
+}
+
 module.exports = {
     Signin,
     Signup,
     Signout,
     ForgotPassword,
-    ResetPassword
+    ResetPassword,
+    AddFriend,
+    FetchFriends,
+    DeleteFriend,
+    SearchUser,
+    UserProfile,
+    EditUser
 }

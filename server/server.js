@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cookieEncrypter = require("cookie-encrypter");
 const cors = require("cors");
+const { setSocketIdOfUser, socketIds } = require("./controllers/socket.controller");
 dotenv.config();
 // dotenv.config({ path: __dirname + "./.env" });
 const app = express();
@@ -38,14 +39,24 @@ app.use(function (req, res, next) {
 });
 
 const listeningServer = createServer(app);
+
+app.use("/", require("./routes/user.router"));
 const io = new Server(listeningServer, {
   cors: { origin: process.env.ACCESS_ORIGIN },
 });
 
-app.use("/", require("./routes/user.router"));
-
 io.on('connection', (socket) => {
-  console.log(`socket connected :${socket.id}`);
+  const username = socket.handshake.query.signedinUser;
+  console.log({ username, "socketId": socket.id });
+  setSocketIdOfUser({ username, socketId: socket.id });
+
+  socket.on('disconnect', () => {
+    console.log('dicosnnected socket');
+  })
+
+  socket.on("send-message", ({ message,sender, to,timeStamp }) => {
+    io.to(socketIds[to]).emit("recieve-message", { message, sender,timeStamp })
+  })
 })
 
 listeningServer.listen(process.env.HOST_PORT || 3000, () => {
@@ -53,6 +64,5 @@ listeningServer.listen(process.env.HOST_PORT || 3000, () => {
 
 
 });
-module.exports = { io }
 
 
