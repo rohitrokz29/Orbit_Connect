@@ -11,7 +11,10 @@ const {
     DeleteFriend,
     SearchUser,
     UserProfile,
-    EditUser
+    EditUser,
+    FetchPosts,
+    LikeAndDislikePost,
+    AddPost
 } = require("../controllers/user.controller");
 
 const userRouter = Router();
@@ -39,5 +42,12 @@ userRouter.get('/user/:username',UserProfile);
 
 userRouter.post('/edit',EditUser);
 
+userRouter.get('/posts/:username',FetchPosts);
+
+userRouter.post('/posts',AddPost);
+
+userRouter.post('/like/:postID',LikeAndDislikePost);
+
+userRouter.post('/dislike/:postID',LikeAndDislikePost);
 
 module.exports = userRouter;

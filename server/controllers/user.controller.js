@@ -76,9 +76,9 @@ const Signin = async (req, res) => {
             return res.status(400).json({ message: "Invalid Details" });
         }
         database.query(
-            `SELECT name,username,id,password FROM users WHERE username='${username}';`,
+            `SELECT name,username,id,password FROM users WHERE username="${username}";`,
             async (error, result) => {
-                console.log(result[0]);
+                // console.log(result);
                 if (error || result.length === 0) {
                     return res
                         .status(404)
@@ -200,27 +200,46 @@ const AddFriend = async (req, res) => {
     try {
         const { user1, user2 } = req.body;
         database.query(
-            'INSERT INTO friends VALUES (?,?);',
-            [user1, user2],
-            (err, result) => {
+            `SELECT COUNT(user1) FROM friends WHERE (user1 = '${user1}' AND user2 = '${user2}' )OR ( user1 = '${user2}' AND user2 = '${user1}');`,
+            (err, countResult) => {
                 if (err) {
                     console.log(err);
                     res.status(401).json({ message: "Server Error" });
                     return;
                 }
-                if (result?.affectedRows !== 1) {
-                    console.log(result);
-                    res.status(200).json({ message: "Server Error" });
-                    return;
+                if (countResult[0]['COUNT(user1)'] !== 0) {
+                    res.status(201).json({ message: "Alreadyy friend" })
                 }
-                res.status(200).json({ message: "Added" })
+                database.query(
+                    'INSERT INTO friends VALUES (?,?);',
+                    [user1, user2],
+                    (err, result) => {
+                        if (err) {
+                            console.log(err);
+                            res.status(401).json({ message: "Server Error" });
+                            return;
+                        }
+                        if (result?.affectedRows !== 1) {
+                            console.log(result);
+                            res.status(200).json({ message: "Server Error" });
+                            return;
+                        }
+                        res.status(200).json({ message: "Added" })
+                    }
+                )
             }
         )
+
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
 }
 
+/**
+ * 
+ * @param { SEE THIS HOW TO REDUCE THE FETCH TIME USING JOINING THE TABLES TO FIND FRIENDS}  
+ * @returns 
+ */
 const FetchFriends = async (req, res) => {
     try {
         const { username } = req.params;
@@ -345,6 +364,58 @@ const EditUser = async (req, res) => {
     }
 }
 
+const AddPost=async(req,res)=>{
+try {
+    const {username}=req.params;
+    const {post_data}=req.body;
+    const timestamp=(new Date()).getTime();
+    database.query(
+        `INSERT INTO posts VALUES('${username}','${post_data}','${timestamp}',0,0);`,
+        async (err,result)=>{
+            console.log(result);
+        }
+    )
+} catch (error) {
+    
+}
+}
+
+const FetchPosts = async (req, res) => {
+    try {
+        const { username } = req.params;
+        database.query(
+            `SELECT username,post_data,timestamp,likes,dislikes FROM posts INNER JOIN friends ON (posts.username='${username}' OR (posts.username = friends.user1 AND friends.user2 = '${username}')OR ( posts.username = friends.user2 AND friends.user1 = '${username}')) ORDER BY timestamp DESC;`,
+           async (err, result) => {
+                if (err) {
+                    res.status(400).json({ message: err.message });
+                    return
+                }
+                res.status(200).json(result);
+            })
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+        return
+    }
+}
+
+const LikeAndDislikePost = async (req, res) => {
+    try {
+        //Store the user likes in loaclstorage
+        /**
+         * postID: like%hjhwdjhgejgejgej
+         * postID: dislike%hkdhkehkehjke
+         */
+        const [type, postID] = req.params.postID.split('%');
+        database.query(
+            'UPDATE'
+        )
+
+    } catch (error) {
+
+    }
+}
+
+
 module.exports = {
     Signin,
     Signup,
@@ -356,5 +427,8 @@ module.exports = {
     DeleteFriend,
     SearchUser,
     UserProfile,
-    EditUser
+    EditUser,
+    AddPost,
+    FetchPosts,
+    LikeAndDislikePost
 }

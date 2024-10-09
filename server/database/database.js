@@ -3,10 +3,11 @@ require('dotenv').config()
 const mysql = require('mysql');
 
 const database = mysql.createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
+    host: process.env.MYSQL_HOST || "",
+    user: process.env.MYSQL_USER || "root",
     password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
+    database: process.env.MYSQL_DATABASE || "orbit_connect",
+    port: process.env.MYSQL_PORT || 3880
 })
 const connectDatabase = () => {
     // try {
