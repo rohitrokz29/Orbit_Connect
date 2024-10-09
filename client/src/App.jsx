@@ -13,18 +13,18 @@ import Profile from "./components/Profile";
 import { HomeState } from "./contexts/HomeContext";
 
 function App() {
-  const { user, isSignedIn, loaderRef } = useContext(UserContext)
+  const { user, loaderRef } = useContext(UserContext)
 
   return (
     <>
       <LoadingBar color="red" ref={loaderRef} />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={isSignedIn ? <HomeState><Home /></HomeState> : <Main />} />
-          <Route path="/signup" element={!isSignedIn ? <SignupPage /> : <Navigate to='/' replace />} />
-          <Route path="/signin" element={!isSignedIn ? <SigninPage /> : <Navigate to='/' replace />} />
-          <Route path="/forgot_password" element={!isSignedIn ? <ForgotPassword /> : <Navigate to='/' replace />} />
-          <Route path="/reset/:id" element={!isSignedIn ? <ResetPassword /> : <Navigate to='/' replace />} />
+          <Route path="/" element={user ? <HomeState><Home /></HomeState> : <Main />} />
+          <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to='/' replace />} />
+          <Route path="/signin" element={!user ? <SigninPage /> : <Navigate to='/' replace />} />
+          <Route path="/forgot_password" element={!user ? <ForgotPassword /> : <Navigate to='/' replace />} />
+          <Route path="/reset/:id" element={!user ? <ResetPassword /> : <Navigate to='/' replace />} />
           <Route exact path='/user/:username' element={<Profile />} />
         </Routes>
       </BrowserRouter>

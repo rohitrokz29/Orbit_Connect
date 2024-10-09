@@ -8,7 +8,7 @@ export const SocketContext = createContext();
 export const SocketState = ({ children }) => {
     const [socket, SetSocket] = useState(null);
     const { user, isSignedIn, loaderRef } = useContext(UserContext);
-    console.log({userSocker:user});
+    console.log({userSocket:user});
     useEffect(() => {
         if(!user) return;
         const newSocket = socketIO.connect(process.env.SOCKET_IO_CONNECTION || "http://localhost:3000/",{query:`signedinUser=${user["username"]}`});
