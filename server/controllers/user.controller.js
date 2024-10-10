@@ -294,20 +294,34 @@ const DeleteFriend = async (req, res) => {
     }
 }
 
-const SearchUser = async (req, res) => {
+const Search = async (req, res) => {
     try {
-        const { searchParam } = req.params;
+        const { searchParam, username } = req.params;
+
         database.query(
             `SELECT username,name,profileImg FROM users WHERE username LIKE '%${searchParam}%' OR name LIKE '%${searchParam}%'; `,
-            (err, result) => {
-                console.log({ err, result });
+            async (err, users) => {
+                console.log({ err, users });
                 if (err) {
                     res.status(404).json({ message: 'Not Found' })
                     return;
                 }
-                res.status(200).json(result);
+
+                database.query(
+                    `SELECT username,post_data,timestamp,likes,dislikes FROM posts INNER JOIN friends ON (posts.username='${username}' OR (posts.username = friends.user1 AND friends.user2 = '${username}')OR ( posts.username = friends.user2 AND friends.user1 = '${username}')) WHERE username LIKE '%${searchParam}%' ORDER BY timestamp DESC;`,
+                    async (err, posts) => {
+                        console.log({ err, posts });
+                        if (err) {
+                            res.status(404).json({ message: "Not Found" });
+                            return;
+                        }
+                        res.status(200).json({ users, posts });
+                    }
+                )
+
             }
         )
+
     } catch (error) {
         res.status(500).json({ message: "Server Error" });
     }
@@ -364,28 +378,32 @@ const EditUser = async (req, res) => {
     }
 }
 
-const AddPost=async(req,res)=>{
-try {
-    const {username}=req.params;
-    const {post_data}=req.body;
-    const timestamp=(new Date()).getTime();
-    database.query(
-        `INSERT INTO posts VALUES('${username}','${post_data}','${timestamp}',0,0);`,
-        async (err,result)=>{
-            console.log(result);
-        }
-    )
-} catch (error) {
-    
-}
+const AddPost = async (req, res) => {
+    try {
+        const { username } = req.params;
+        const { post_data } = req.body;
+        const timestamp = (new Date()).getTime();
+        const id = nanoid(50);
+        database.query(
+            `INSERT INTO posts VALUES('${username}','${post_data}','${timestamp}',0,0,'${id}');`,
+            async (err, result) => {
+                console.log(result);
+                if (err) res.status(400).json({ message: "Post Not Added" });
+
+                res.status(200).json({ message: "Post Added" });
+            }
+        )
+    } catch (error) {
+
+    }
 }
 
 const FetchPosts = async (req, res) => {
     try {
         const { username } = req.params;
         database.query(
-            `SELECT username,post_data,timestamp,likes,dislikes FROM posts INNER JOIN friends ON (posts.username='${username}' OR (posts.username = friends.user1 AND friends.user2 = '${username}')OR ( posts.username = friends.user2 AND friends.user1 = '${username}')) ORDER BY timestamp DESC;`,
-           async (err, result) => {
+            `SELECT id,username,post_data,timestamp,likes,dislikes FROM posts INNER JOIN friends ON (posts.username='${username}' OR (posts.username = friends.user1 AND friends.user2 = '${username}')OR ( posts.username = friends.user2 AND friends.user1 = '${username}')) ORDER BY timestamp DESC;`,
+            async (err, result) => {
                 if (err) {
                     res.status(400).json({ message: err.message });
                     return
@@ -407,7 +425,8 @@ const LikeAndDislikePost = async (req, res) => {
          */
         const [type, postID] = req.params.postID.split('%');
         database.query(
-            'UPDATE'
+            `UPDATE posts SET '${type}' = '${type}' ${type === 'like' ? '+' : '-'} 1 WHERE id = '${postID}';`,
+            
         )
 
     } catch (error) {
@@ -425,7 +444,7 @@ module.exports = {
     AddFriend,
     FetchFriends,
     DeleteFriend,
-    SearchUser,
+    Search,
     UserProfile,
     EditUser,
     AddPost,

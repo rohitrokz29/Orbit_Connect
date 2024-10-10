@@ -9,7 +9,7 @@ const {
     AddFriend,
     FetchFriends,
     DeleteFriend,
-    SearchUser,
+    Search,
     UserProfile,
     EditUser,
     FetchPosts,
@@ -36,7 +36,7 @@ userRouter.get('/friends/:username',FetchFriends);
 
 userRouter.post('/delete/friend',DeleteFriend);
 
-userRouter.get('/search/:searchParam',SearchUser);
+userRouter.get('/search/:searchParam/:username',Search);
 
 userRouter.get('/user/:username',UserProfile);
 
