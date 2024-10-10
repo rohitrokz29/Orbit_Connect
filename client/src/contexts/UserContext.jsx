@@ -13,7 +13,7 @@ export const UserContext = createContext();
 /**
  * state={
  * user:{
- * email,name,id
+ * username,name,id
  * }
  * }
  */

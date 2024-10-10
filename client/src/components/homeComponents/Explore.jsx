@@ -3,16 +3,19 @@ import { baseUrl, properties, headers } from '../../assets/api';
 import UserBox from './UserBox';
 import { UserContext } from '../../contexts/UserContext';
 import { profiles } from './helpers';
+import { Link } from 'react-router-dom';
 
 const Explore = () => {
     const [search, SetSearch] = useState("");
     const { user, isSignedIn } = useContext(UserContext);
-    const [searchResult, setSearchResult] = useState([]);
+    const [searchResultUsers, setSearchResultUsers] = useState([]);
+    const [searchResultPosts, setSearchResultPosts] = useState([]);
+
     const [postList, setPostList] = useState([]);
     const searchUser = (e) => {
         e.preventDefault();
-        if (!search || search.length===0) return;
-        fetch(`${baseUrl}search/${search}`, {
+        if (!search || search.length === 0) return;
+        fetch(`${baseUrl}search/${search}/${user.username}`, {
             method: "GET",
             headers,
             credentials: properties.credentials,
@@ -23,7 +26,9 @@ const Explore = () => {
             })
             .then(res => {
                 if (!res) return;
-                setSearchResult([...res]);
+
+                setSearchResultUsers([...res.users]);
+                setSearchResultPosts([...res.posts]);
             })
     }
     useEffect(() => {
@@ -39,20 +44,22 @@ const Explore = () => {
             .then(res => {
                 console.log(res);
                 setPostList([...res])
-                // setPostList(postList=> [...postList,...res])
             })
 
 
     }, [])
     useEffect(() => {
-        if (search.length === 0) setSearchResult([]);
+        if (search.length === 0) {
+            setSearchResultUsers([]);
+            setSearchResultPosts([]);
+        }
     }, [search])
     return (
-        <div className="column   is-vcentered px-3 py-0 mx-0" style={{ height: "90vh",overflowY:'auto' }} >
+        <div className="column   is-vcentered px-3 py-0 mx-0" style={{ height: "90vh", overflowY: 'auto' }} >
             <div className="container   has-background-dark px-0 is-vcentered is-flex has-flex-direction-row is-alignitems-center is-justify-content-space-around" >
                 <div className="field mt-2  px-2" style={{ width: "-webkit-fill-available " }} >
                     <div className="control has-icons-left has-icons-right">
-                        <input className="input  " type="search" placeholder="Search User" value={search} onChange={(e) => { SetSearch(e.target.value) }} />
+                        <input className="input  " type="search" placeholder="Search User/Posts" value={search} onChange={(e) => { SetSearch(e.target.value) }} />
                         <span className="icon is-small is-left">
                             <i className="fas fa-search"></i>
                         </span>
@@ -62,15 +69,28 @@ const Explore = () => {
 
             </div>
 
-            {searchResult.length > 0 &&
-                searchResult?.map(({ username, name, profileImg }, index) => {
+            {searchResultUsers.length > 0 &&
+                searchResultUsers?.map(({ username, name, profileImg }, index) => {
                     return (
                         <UserBox key={index} username={username} name={name} profileImg={profileImg} type={"search"} />
                     )
                 })
             }
             {
-                postList.length > 0 && searchResult.length === 0 &&
+                searchResultPosts.length > 0 &&
+                searchResultPosts?.map(({ username, post_data, timestamp, likes, dislikes }, index) => {
+                    return <PostsBox key={index}
+                        id={1}
+                        username={username}
+                        post_data={post_data}
+                        timestamp={timestamp}
+                        likes={likes}
+                        dislikes={dislikes} />
+                })
+
+            }
+            {
+                postList.length > 0 && searchResultUsers.length === 0 && searchResultPosts.length === 0 &&
                 postList?.map(({ username, post_data, timestamp, likes, dislikes }, index) => {
                     return <PostsBox key={index}
                         id={2}
@@ -111,10 +131,11 @@ const PostsBox = ({ id, username, post_data, timestamp, likes, dislikes }) => {
             <div className="box">
                 <article className="media">
                     <div className="media-left">
-                        <figure className="image is-64x64">
-                            <img src={profiles[id]} />
-                        </figure>
-
+                        <Link to={`user/${username}`}>
+                            <figure className="image is-64x64">
+                                <img src={profiles[id]} />
+                            </figure>
+                        </Link>
                     </div>
                     <div className="media-content">
                         <div className="content">
