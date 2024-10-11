@@ -394,7 +394,7 @@ const AddPost = async (req, res) => {
             }
         )
     } catch (error) {
-
+        res.status(400).json({ message: "Post Not Added" });
     }
 }
 
@@ -402,7 +402,20 @@ const FetchPosts = async (req, res) => {
     try {
         const { username } = req.params;
         database.query(
-            `SELECT id,username,post_data,timestamp,likes,dislikes FROM posts INNER JOIN friends ON (posts.username='${username}' OR (posts.username = friends.user1 AND friends.user2 = '${username}')OR ( posts.username = friends.user2 AND friends.user1 = '${username}')) ORDER BY timestamp DESC;`,
+            `WITH RankedPosts AS (
+                    SELECT id, username, post_data, timestamp, likes, dislikes,
+                    ROW_NUMBER() OVER (PARTITION BY id ORDER BY timestamp DESC) AS rn
+                    FROM posts 
+                    INNER JOIN friends ON (
+                        posts.username = '${username}' 
+                        OR (posts.username = friends.user1 AND friends.user2 = '${username}')
+                        OR (posts.username = friends.user2 AND friends.user1 = '${username}')
+                    )
+                )
+                SELECT id, username, post_data, timestamp, likes, dislikes
+                FROM RankedPosts
+                WHERE rn = 1
+                ORDER BY timestamp DESC;`,
             async (err, result) => {
                 if (err) {
                     res.status(400).json({ message: err.message });
@@ -420,17 +433,41 @@ const LikeAndDislikePost = async (req, res) => {
     try {
         //Store the user likes in loaclstorage
         /**
-         * postID: like%hjhwdjhgejgejgej
-         * postID: dislike%hkdhkehkehjke
+         * postID: like:hjhwdjhgejgejgej
+         * postID: dislike:hkdhkehkehjke
          */
-        const [type, postID] = req.params.postID.split('%');
-        database.query(
-            `UPDATE posts SET '${type}' = '${type}' ${type === 'like' ? '+' : '-'} 1 WHERE id = '${postID}';`,
-            
-        )
+        console.log(req.params.postID);
+        const [type, postID] = req.params.postID.split(':');
+        if (type === 'like') {
+            database.query(
+                `UPDATE posts SET likes = likes + 1 WHERE id = '${postID}';`,
+                (err, result) => {
+                    console.log({ err, result });
+                    if (err || result.affectedRows===0) {
+                        res.status(400).json({ message: "Like Not Added" });
+                        return;
+                    }
+                    res.status(200).json({ message: "Like added" })
+                }
+            )
+        }
+        else {
+            database.query(
+                `UPDATE posts SET dislikes =dislikes + 1 WHERE id = '${postID}';`,
+                (err, result) => {
+                    console.log({ err, result });
+                    if (err || result.affectedRows===0) {
+                        res.status(400).json({ message: "Dislike Not Added" });
+                        return;
+                    }
+                    res.status(200).json({ message: "dislike added" })
+                }
+            )
+        }
+
 
     } catch (error) {
-
+        res.status(400).json({ message: "Server Error" });
     }
 }
 

@@ -44,7 +44,7 @@ userRouter.post('/edit',EditUser);
 
 userRouter.get('/posts/:username',FetchPosts);
 
-userRouter.post('/posts',AddPost);
+userRouter.post('/posts/:username',AddPost);
 
 userRouter.post('/like/:postID',LikeAndDislikePost);
 
