@@ -331,7 +331,7 @@ const UserProfile = async (req, res) => {
     try {
         const { username } = req.params
         database.query(
-            `SELECT  name, username, description, profileImg FROM users WHERE username='${username}'; `,
+            `SELECT  name, username, description, profileImg, gender, dob FROM users WHERE username='${username}'; `,
             (err, result) => {
                 if (err) {
                     res.status(404).json({ message: "Not Found" });

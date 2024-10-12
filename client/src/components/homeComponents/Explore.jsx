@@ -80,7 +80,7 @@ const Explore = () => {
                 searchResultPosts.length > 0 &&
                 searchResultPosts?.map(({ username, post_data, timestamp, likes, dislikes }, index) => {
                     return <PostsBox key={index}
-                        id={1}
+                        id={0}
                         username={username}
                         post_data={post_data}
                         timestamp={timestamp}
@@ -93,7 +93,7 @@ const Explore = () => {
                 postList.length > 0 && searchResultUsers.length === 0 && searchResultPosts.length === 0 &&
                 postList?.map(({ username, post_data, timestamp, likes, dislikes }, index) => {
                     return <PostsBox key={index}
-                        id={2}
+                        id={0}
                         username={username}
                         post_data={post_data}
                         timestamp={timestamp}

@@ -8,7 +8,12 @@ import Profile7 from '../../assets/userImages/profile7.jpeg'
 import Profile8 from '../../assets/userImages/profile8.jpeg'
 import Profile9 from '../../assets/userImages/profile9.jpeg'
 import Profile10 from '../../assets/userImages/profile10.jpeg'
+import genProfile from '../../assets/userImages/genuser.webp'
+import malePoster from '../../assets/userImages/maleposter.webp'
+import femalePoster from '../../assets/userImages/femaleposter.webp'
+
 export const profiles = {
+    0: genProfile,
     1: Profile1,
     2: Profile2,
     3: Profile3,
@@ -18,5 +23,8 @@ export const profiles = {
     7: Profile7,
     8: Profile8,
     9: Profile9,
-    10: Profile10
+    10: Profile10,
+    femalePoster,
+    malePoster
+
 }
