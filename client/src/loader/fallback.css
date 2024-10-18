@@ -1,0 +1,40 @@
+.center-item {
+    display: grid;
+    place-items: center;
+}
+
+.main-fallback {
+    width: 100vw;
+    height: 100dvh;
+}
+
+.outer-roll {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border: 8px solid #fff;
+    border-radius: 150px;
+    border-block-color: #000;
+    animation: rotate-clock 1s infinite ease-in-out;
+}
+
+.inner-roll {
+    position: absolute;
+
+    width: 90px;
+    height: 90px;
+    border: 8px solid #ddd;
+    border-radius: 150px;
+    border-inline-color: #000;
+    animation: rotate-clock 1s infinite ease-in-out;
+}
+
+@keyframes rotate-clock {
+    50% {
+        rotate: 180deg;
+    }
+
+    100% {
+        rotate: -180deg;
+    }
+}

@@ -1,16 +1,17 @@
-import { useState, useEffect, useContext } from "react";
+import { useContext, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoadingBar from 'react-top-loading-bar';
 import { UserContext } from "./contexts/UserContext";
-import 'bulma/css/bulma.min.css';
-import Main from "./components/Main";
-import Home from "./components/Home";
-import SigninPage from "./components/Signin";
-import SignupPage from "./components/Signup";
-import ForgotPassword from "./components/ForgotPassword";
-import ResetPassword from "./components/ResetPassword";
-import Profile from "./components/Profile";
 import { HomeState } from "./contexts/HomeContext";
+import 'bulma/css/bulma.min.css';
+import FallbackComp from "./loader/Fallback";
+const Main = lazy(() => import("./components/Main"));
+const Home = lazy(() => import("./components/Home"));
+const SigninPage = lazy(() => import("./components/Signin"));
+const SignupPage = lazy(() => import("./components/Signup"));
+const ForgotPassword = lazy(() => import("./components/ForgotPassword"));
+const ResetPassword = lazy(() => import("./components/ResetPassword"));
+const Profile = lazy(() => import("./components/Profile"));
 
 function App() {
   const { user, loaderRef } = useContext(UserContext)
@@ -20,12 +21,27 @@ function App() {
       <LoadingBar color="red" ref={loaderRef} />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={user ? <HomeState><Home /></HomeState> : <Main />} />
-          <Route path="/signup" element={!user ? <SignupPage /> : <Navigate to='/' replace />} />
-          <Route path="/signin" element={!user ? <SigninPage /> : <Navigate to='/' replace />} />
-          <Route path="/forgot_password" element={!user ? <ForgotPassword /> : <Navigate to='/' replace />} />
-          <Route path="/reset/:id" element={!user ? <ResetPassword /> : <Navigate to='/' replace />} />
-          <Route exact path='/user/:username' element={<Profile />} />
+          <Route path="/" element={user ?
+            <HomeState>
+              <Suspense fallback={<FallbackComp />}><Home /></Suspense>
+            </HomeState> :
+            <Suspense fallback={<FallbackComp />}><Main /></Suspense>
+          } />
+          <Route path="/signup" element={!user ?
+            <Suspense fallback={<FallbackComp />}><SignupPage /></Suspense>
+            : <Navigate to='/' replace />} />
+          <Route path="/signin" element={!user ?
+            <Suspense fallback={<FallbackComp />}><SigninPage /></Suspense>
+            : <Navigate to='/' replace />} />
+          <Route path="/forgot_password" element={!user ?
+            <Suspense fallback={<FallbackComp />}><ForgotPassword /></Suspense>
+            : <Navigate to='/' replace />} />
+          <Route path="/reset/:id" element={!user ?
+            <Suspense fallback={<FallbackComp />}><ResetPassword /></Suspense>
+            : <Navigate to='/' replace />} />
+          <Route exact path='/user/:username' element={
+            <Suspense fallback={<FallbackComp />}><Profile /></Suspense>
+          } />
         </Routes>
       </BrowserRouter>
     </>
