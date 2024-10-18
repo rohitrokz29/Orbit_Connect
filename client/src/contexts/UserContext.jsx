@@ -49,15 +49,15 @@ export const UserState = ({ children }) => {
         }
     }, []);
 
-    const Signup = ({ email, name, password, username }) => {
+    const Signup = ({ email, name, password, username,gender, dob }) => {
         loaderRef.current.continuousStart();
-        console.log({ email, name, password, username });
+        console.log({ email, name, password, username,gender,dob });
         setError("");
         fetch(`${baseUrl}signup`, {
             method: "POST",
             credentials: properties.credentials,
             headers,
-            body: JSON.stringify({ email, name, password, username }),
+            body: JSON.stringify({ email, name, password, username,gender,dob }),
         })
             .then((res) => {
                 if (res.status === 400) {

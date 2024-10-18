@@ -9,6 +9,9 @@ const SignupPage = () => {
   const usernameRef = useRef(null);//2
   const emailRef = useRef(null);//3
   const passwordRef = useRef(null);//4
+  const genderRef = useRef(null);//5
+  const dobRef = useRef(null);//6
+
   const [infoCheck, setInfoCheck] = useState(0);
   const { Signup, error } = useContext(UserContext);
 
@@ -20,12 +23,14 @@ const SignupPage = () => {
       username: usernameRef.current.value,
       email: emailRef.current.value,
       password: passwordRef.current.value,
+      gender: genderRef.current.value,
+      dob: dobRef.current.value
     };
     if (info.name.length < 2) {
       setInfoCheck(1);
       return;
     }
-    if (info.username.length < 2 || info.username.indexOf(' ')>=0) {
+    if (info.username.length < 2 || info.username.indexOf(' ') >= 0) {
       setInfoCheck(2);
       return;
     }
@@ -37,8 +42,15 @@ const SignupPage = () => {
       setInfoCheck(4);
       return;
     }
+    if (!info.gender) {
+      setInfoCheck(5);
+      return;
+    }
+    if (!info.dob) {
+      setInfoCheck(6);
+      return;
+    }
 
-    console.log(info);
     if (infoCheck === 0) {
       console.log(info);
       Signup(info);
@@ -59,7 +71,7 @@ const SignupPage = () => {
           </section>
 
           <p className="content  has-text-centered"><strong>Signup</strong> at Orbit Connect</p>
-          <div className="box">
+          <div className="box" style={{overflowY:"auto", height:"70vh"}}>
 
             <div className="field px-6">
               <label className="label">Name</label>
@@ -132,6 +144,32 @@ const SignupPage = () => {
               </div>
               {infoCheck === 4 &&
                 <p className="help is-danger">This password is not strong.</p>
+              }
+            </div>
+            <div className="field px-6">
+
+              <div className="select " >
+                <select ref={genderRef} defaultValue={null} className="px-6">
+                  <option value={null} selected >Gender</option>
+                  <option value={"Male"} >Male</option>
+                  <option value={"Female"} >Female</option>
+                  <option value={"Prefer not to say"} >Prefer Not to Say</option>
+                </select>
+                {infoCheck === 5 &&
+                  <p className="help is-danger">Please select a gender</p>
+                }
+              </div>
+            </div>
+
+
+            <div className="field px-6">
+              <label className="label">Date of Birth</label>
+              <div className="control has-icons-left has-icons-right">
+                <input className="input  " type="date" placeholder="Date of Birth" ref={dobRef} />
+
+              </div>
+              {infoCheck === 6 &&
+                <p className="help is-danger">Enter Date of Birth</p>
               }
             </div>
 

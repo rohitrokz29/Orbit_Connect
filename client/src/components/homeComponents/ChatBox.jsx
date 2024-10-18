@@ -21,6 +21,7 @@ const ChatBox = ({ chatUser, setChatUser }) => {
         let _stored_messages = JSON.parse(localStorage.getItem(`_messages_${username}`));
         setMessages([..._stored_messages])
     }, [username]);
+    
 
     socket?.on('recieve-message', ({ sender, message, timeStamp }) => {
         localStorage.setItem(`_messages_${username}`, JSON.stringify([...messages, { sender, message, timeStamp }]));

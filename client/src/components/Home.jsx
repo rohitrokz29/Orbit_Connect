@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import ProfileImage from '../assets/userImages/profile3.jpeg'
 import ChatBox from "./homeComponents/ChatBox";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -12,16 +12,16 @@ const Home = () => {
     const [chatUser, setChatUser] = useState({});
     const { user, SignOut } = useContext(UserContext);
     const { friends } = useContext(HomeContext);
-    const [searchParam,setSearchParam] = useState("");
+    const [searchParam, setSearchParam] = useState("");
     const [searchFriends, setSearchFriends] = useState([]);
 
     const setSearch = () => {
-        if(!searchParam) return;
+        if (!searchParam) return;
         const res = friends.filter(({ username }) => username.includes(searchParam));
         setSearchFriends([...res]);
     }
     useEffect(() => {
-        if (!searchParam || searchParam.length===0) {
+        if (!searchParam || searchParam.length === 0) {
             setSearchFriends([]);
         }
     }, [searchParam])
@@ -36,11 +36,11 @@ const Home = () => {
 
                     <div className="field  ">
                         <div className="control is-flex">
-                            <input className="input" type="search" placeholder="Search Friends " value={searchParam} onChange={(e)=>setSearchParam(e.target.value)} />
-                            <button class="button is-primary ml-1"
+                            <input className="input" type="search" placeholder="Search Friends " value={searchParam} onChange={(e) => setSearchParam(e.target.value)} />
+                            <button className="button is-primary ml-1"
                                 onClick={setSearch}>
-                                <span class="icon is-small">
-                                    <i class="fas fa-search"></i>
+                                <span className="icon is-small">
+                                    <i className="fas fa-search"></i>
                                 </span>
                             </button>
                         </div>
@@ -98,9 +98,9 @@ const Home = () => {
 }
 export default Home;
 
-const Navbar = ({ setChatUser }) => {
-    const { user, SignOut } = useContext(UserContext);
+export const Navbar = ({ setChatUser }) => {
 
+    const { user, SignOut } = useContext(UserContext);
     return (<nav className="navbar is-fixed-top px-1  	" style={{ borderBottom: "2px solid #fff" }} role="navigation" aria-label="main navigation">
         <div className="navbar-brand">
             <Link className="is-size-3 " to='/'><strong>Orbit Connect</strong></Link>

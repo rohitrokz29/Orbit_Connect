@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { baseUrl, headers, properties, } from "../assets/api";
 import { useLocation } from "react-router-dom";
 import { profiles } from './homeComponents/helpers'
+import { Navbar } from "./Home";
 const Profile = () => {
     const location = useLocation();
+    const profile_name = location.pathname.split('/').at(2)
     const [profile, setProfile] = useState({});
-    const [dob, setDob] = useState("");
+    const [isFrined, setIsFrined] = useState(false);
+
     useEffect(() => {
-        fetch(`${baseUrl}user/${location.pathname.split('/').at(2)}`, {
+        fetch(`${baseUrl}user/${profile_name}`, {
             method: "GET",
             headers,
             credentials: properties.credentials
@@ -17,7 +20,7 @@ const Profile = () => {
                 return;
             })
             .then((res) => {
-                setProfile({ ...res })
+                setProfile({ ...profile, ...res })
                 console.log(profile);
             })
             .catch((err) => {
@@ -25,27 +28,21 @@ const Profile = () => {
             });
     }, []);
     useEffect(() => {
-        console.log(profile);
-        if (!profile) return;
-        const date = new Date(+profile.dob);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = String(date.getFullYear()).slice(-2);
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const formattedDate = `${day}-${month}-${year}`;
-        setDob(formattedDate)
+        const frindsList = JSON.parse(localStorage.getItem('friends'));
+        if (frindsList?.includes(profile_name)) {
+            setIsFrined(true);
+        }
+    }, [])
 
-    }, [profile])
     return (
         <>
-            <div className="container columns">
+            <div className="container mt-6 pt-4 columns">
                 <div className="column is-one-third ">
                     <div className="card">
                         <div className="card-image">
                             <figure className="image is-4by3">
                                 <img
-                                    src={profile?.gender === 'male' ? profiles.malePoster : profiles.femalePoster}
+                                    src={profile?.gender === 'Male' ? profiles.malePoster : profiles.femalePoster}
                                     alt="Poster image"
                                 />
                             </figure>
@@ -72,14 +69,14 @@ const Profile = () => {
                                     {profile.description}
                                 </blockquote>
                                 <blockquote>
-                                    <strong>DOB:</strong>  {dob ? dob : "dd-mm-yyyy"}
+                                    <strong>DOB:</strong>  {profile.dob ? profile.dob : "dd-mm-yyyy"}
                                 </blockquote>
                                 <div className="container is-flex is-flex-direction-row	is-justify-content-center	 ">
 
-                                    <div className="content">
-                                        <button class="button is-link">Add Friend</button>
+                                    {!isFrined && <div className="content">
+                                        <button className="button is-link">Add Friend</button>
                                     </div>
-
+                                    }
                                 </div>
 
                             </div>
@@ -91,25 +88,25 @@ const Profile = () => {
                         <div className="level-item has-text-centered">
                             <div>
                                 <p className="heading">Posts</p>
-                                <p className="title">3,456</p>
+                                <p className="title">{profile.num_posts ? profile.num_posts : 0}</p>
                             </div>
                         </div>
                         <div className="level-item has-text-centered">
                             <div>
                                 <p className="heading">Friends</p>
-                                <p className="title">123</p>
+                                <p className="title">{profile.num_friends ? profile.num_friends : 0}</p>
                             </div>
                         </div>
                         <div className="level-item has-text-centered">
                             <div>
                                 <p className="heading">Likes</p>
-                                <p className="title">456K</p>
+                                <p className="title">{profile.num_likes ? profile.num_likes : 0}</p>
                             </div>
                         </div>
                         <div className="level-item has-text-centered">
-                            <div>
+                            <div> 
                                 <p className="heading">Profile Visits</p>
-                                <p className="title">789</p>
+                                <p className="title">{profile.visits ? profile.visits : 0}</p>
                             </div>
                         </div>
                     </nav>

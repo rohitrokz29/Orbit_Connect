@@ -78,9 +78,9 @@ const Explore = () => {
             }
             {
                 searchResultPosts.length > 0 &&
-                searchResultPosts?.map(({ username, post_data, timestamp, likes, dislikes }, index) => {
+                searchResultPosts?.map(({ username, post_data, timestamp, likes, dislikes,id }, index) => {
                     return <PostsBox key={index}
-                        id={0}
+                        id={id}
                         username={username}
                         post_data={post_data}
                         timestamp={timestamp}
@@ -91,9 +91,9 @@ const Explore = () => {
             }
             {
                 postList.length > 0 && searchResultUsers.length === 0 && searchResultPosts.length === 0 &&
-                postList?.map(({ username, post_data, timestamp, likes, dislikes }, index) => {
+                postList?.map(({ username, post_data, timestamp, likes, dislikes,id }, index) => {
                     return <PostsBox key={index}
-                        id={0}
+                        id={id}
                         username={username}
                         post_data={post_data}
                         timestamp={timestamp}
@@ -120,7 +120,7 @@ const PostsBox = ({ id, username, post_data, timestamp, likes, dislikes }) => {
 
 
     const addLike = () => {
-
+        
     }
     const addDislike = () => {
 
@@ -133,7 +133,7 @@ const PostsBox = ({ id, username, post_data, timestamp, likes, dislikes }) => {
                     <div className="media-left">
                         <Link to={`user/${username}`}>
                             <figure className="image is-64x64">
-                                <img src={profiles[id]} />
+                                <img src={profiles[0]} />
                             </figure>
                         </Link>
                     </div>
