@@ -18,7 +18,7 @@ const cookieOptions = {
 
 const Signup = async (req, res) => {
 
-    const { name, email, password, username } = req.body;
+    const { name, email, password, username, gender, dob } = req.body;
     try {
         console.log({ name, email, password, username });
 
@@ -37,8 +37,8 @@ const Signup = async (req, res) => {
                 if (err) throw Error(err);
                 const id = nanoid(50);
                 database.query(
-                    "INSERT INTO users VALUES (?,?,?,?,?,?,?);",
-                    [id, email, name, username, "", hash, Math.floor(Math.random() * 10) + 1],
+                    "INSERT INTO users VALUES (?,?,?,?,?,?,?,?,?,?);",
+                    [id, email, name, username, "Hey, I am using Orbit Cnnect", hash, Math.floor(Math.random() * 10) + 1, gender, dob, 0],
                     (err, result) => {
                         console.log(err);
                         console.log(result);
@@ -294,30 +294,42 @@ const DeleteFriend = async (req, res) => {
     }
 }
 
+const FetchPendingMessages = async (req, res) => {
+    try {
+        const { username } = req.params;
+        database.query(
+            `SELECT sender,message,timeStamp FROM pending WHERE reciever=? ;`,
+            [username],
+            (err, result) => {
+                if (err) {
+                    res.status(400).json({ message: "Server Error" });
+                    return;
+                }
+                console.log(result);
+                res.status(200).json(result);
+
+            }
+        )
+    } catch (error) {
+        res.status(400).json({ message: "Server Error" });
+    }
+}
+
 const Search = async (req, res) => {
     try {
         const { searchParam, username } = req.params;
 
         database.query(
-            `SELECT username,name,profileImg FROM users WHERE username LIKE '%${searchParam}%' OR name LIKE '%${searchParam}%'; `,
-            async (err, users) => {
-                console.log({ err, users });
+            `SELECT username,name,profileImg FROM users WHERE username LIKE '%${searchParam}%' OR name LIKE '%${searchParam}%' ;
+            SELECT DISTINCT id, username,post_data,timestamp,likes,dislikes FROM posts INNER JOIN friends ON (posts.username='${username}' OR (posts.username = friends.user1 AND friends.user2 = '${username}')OR ( posts.username = friends.user2 AND friends.user1 = '${username}')) WHERE username LIKE '%${searchParam}%' ORDER BY timestamp DESC;`,
+            async (err, result) => {
+                console.log({ err, result });
                 if (err) {
                     res.status(404).json({ message: 'Not Found' })
                     return;
                 }
 
-                database.query(
-                    `SELECT username,post_data,timestamp,likes,dislikes FROM posts INNER JOIN friends ON (posts.username='${username}' OR (posts.username = friends.user1 AND friends.user2 = '${username}')OR ( posts.username = friends.user2 AND friends.user1 = '${username}')) WHERE username LIKE '%${searchParam}%' ORDER BY timestamp DESC;`,
-                    async (err, posts) => {
-                        console.log({ err, posts });
-                        if (err) {
-                            res.status(404).json({ message: "Not Found" });
-                            return;
-                        }
-                        res.status(200).json({ users, posts });
-                    }
-                )
+                res.status(200).json({ users: result[0], posts: result[1] });
 
             }
         )
@@ -331,13 +343,32 @@ const UserProfile = async (req, res) => {
     try {
         const { username } = req.params
         database.query(
-            `SELECT  name, username, description, profileImg, gender, dob FROM users WHERE username='${username}'; `,
-            (err, result) => {
+            `SELECT COUNT(user1) FROM friends user1 WHERE user1='${username}' OR user2='${username}';
+            SELECT COUNT(id) FROM posts WHERE username='${username}';
+            SELECT SUM(likes) FROM posts WHERE username='${username}';
+            SELECT  name, username, description, profileImg, gender, dob,visits FROM users WHERE username='${username}'; 
+            UPDATE users SET visits = visits + 1 WHERE username = '${username}';
+            `,
+            async (err, results) => {
                 if (err) {
                     res.status(404).json({ message: "Not Found" });
                     return;
                 }
-                res.status(200).json(result[0]);
+                console.log(results);
+                const formattedResult = {
+                    num_friends: results[0][0]['COUNT(user1)'],
+                    num_posts: results[1][0]['COUNT(id)'],
+                    num_likes: results[2][0]['SUM(likes)'],
+                    name: results[3][0].name,
+                    username: results[3][0].username,
+                    description: results[3][0].description,
+                    profileImg: results[3][0].profileImg,
+                    gender: results[3][0].gender,
+                    dob: results[3][0].dob,
+                    visits: results[3][0].visits
+                };
+
+                res.status(200).json(formattedResult);
             }
         )
     } catch (error) {
@@ -443,7 +474,7 @@ const LikeAndDislikePost = async (req, res) => {
                 `UPDATE posts SET likes = likes + 1 WHERE id = '${postID}';`,
                 (err, result) => {
                     console.log({ err, result });
-                    if (err || result.affectedRows===0) {
+                    if (err || result.affectedRows === 0) {
                         res.status(400).json({ message: "Like Not Added" });
                         return;
                     }
@@ -456,7 +487,7 @@ const LikeAndDislikePost = async (req, res) => {
                 `UPDATE posts SET dislikes =dislikes + 1 WHERE id = '${postID}';`,
                 (err, result) => {
                     console.log({ err, result });
-                    if (err || result.affectedRows===0) {
+                    if (err || result.affectedRows === 0) {
                         res.status(400).json({ message: "Dislike Not Added" });
                         return;
                     }
@@ -486,5 +517,6 @@ module.exports = {
     EditUser,
     AddPost,
     FetchPosts,
-    LikeAndDislikePost
+    LikeAndDislikePost,
+    FetchPendingMessages
 }

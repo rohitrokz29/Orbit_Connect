@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const cookieEncrypter = require("cookie-encrypter");
 const cors = require("cors");
-const { setSocketIdOfUser, socketIds } = require("./controllers/socket.controller");
+const { setSocketIdOfUser, socketIds, removeSocketIdOfUser, sendPending } = require("./controllers/socket.controller");
 dotenv.config();
 // dotenv.config({ path: __dirname + "./.env" });
 const app = express();
@@ -51,11 +51,20 @@ io.on('connection', (socket) => {
   setSocketIdOfUser({ username, socketId: socket.id });
 
   socket.on('disconnect', () => {
-    console.log('dicosnnected socket');
+    removeSocketIdOfUser({ username })
+    console.log(`dicosnnected socket ${{ username, "socketId": socket.id }}`);
+
   })
 
-  socket.on("send-message", ({ message,sender, to,timeStamp }) => {
-    io.to(socketIds[to]).emit("recieve-message", { message, sender,timeStamp })
+  socket.on("send-message", async ({ message, sender, to, timeStamp }) => {
+    if (!socketIds.to) {
+      const result = await sendPending({ message, to, sender, timeStamp });
+      if (result) {
+        io.to(socketIds[sender]).emit('error', 'Message not Sent , Some Error Occured');
+      }
+    }
+    else
+      io.to(socketIds[to]).emit("recieve-message", { message, sender, timeStamp })
   })
 })
 

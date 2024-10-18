@@ -14,7 +14,8 @@ const {
     EditUser,
     FetchPosts,
     LikeAndDislikePost,
-    AddPost
+    AddPost,
+    FetchPendingMessages
 } = require("../controllers/user.controller");
 
 const userRouter = Router();
@@ -30,24 +31,28 @@ userRouter.post("/forgot_password", ForgotPassword);
 
 userRouter.post("/reset/:id", ResetPassword);
 
-userRouter.post('/addFriend', AddFriend);       
+userRouter.post('/addFriend', AddFriend);
 
-userRouter.get('/friends/:username',FetchFriends);
+userRouter.get('/friends/:username', FetchFriends);
 
-userRouter.post('/delete/friend',DeleteFriend);
+userRouter.post('/delete/friend', DeleteFriend);
 
-userRouter.get('/search/:searchParam/:username',Search);
+userRouter.get('/search/:searchParam/:username', Search);
 
-userRouter.get('/user/:username',UserProfile);
+userRouter.get('/user/:username', UserProfile);
 
-userRouter.post('/edit',EditUser);
+userRouter.get('/messages/:username', FetchPendingMessages);
 
-userRouter.get('/posts/:username',FetchPosts);
+userRouter.post('/edit', EditUser);
 
-userRouter.post('/posts/:username',AddPost);
+userRouter.get('/posts/:username', FetchPosts);
 
-userRouter.post('/like/:postID',LikeAndDislikePost);
+userRouter.post('/posts/:username', AddPost);
 
-userRouter.post('/dislike/:postID',LikeAndDislikePost);
+userRouter.post('/like/:postID', LikeAndDislikePost);
+
+userRouter.post('/dislike/:postID', LikeAndDislikePost);
+
+
 
 module.exports = userRouter;

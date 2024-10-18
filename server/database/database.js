@@ -7,7 +7,8 @@ const database = mysql.createPool({
     user: process.env.MYSQL_USER || "root",
     password: process.env.MYSQL_PASSWORD,
     database: process.env.MYSQL_DATABASE || "orbit_connect",
-    port: process.env.MYSQL_PORT || 3880
+    port: process.env.MYSQL_PORT || 3880,
+    multipleStatements:true
 })
 const connectDatabase = () => {
     // try {
