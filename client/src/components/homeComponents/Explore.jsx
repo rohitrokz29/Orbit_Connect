@@ -55,7 +55,7 @@ const Explore = () => {
         }
     }, [search])
     return (
-        <div className="column   is-vcentered px-3 py-0 mx-0" style={{ height: "90vh", overflowY: 'auto' }} >
+        <div className="column   is-vcentered px-3 py-1 mx-0" style={{ height: "90vh", overflowY: 'auto' }} >
             <div className="container   has-background-dark px-0 is-vcentered is-flex has-flex-direction-row is-alignitems-center is-justify-content-space-around" >
                 <div className="field mt-2  px-2" style={{ width: "-webkit-fill-available " }} >
                     <div className="control has-icons-left has-icons-right">

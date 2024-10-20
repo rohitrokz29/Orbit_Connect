@@ -8,22 +8,32 @@ import { baseUrl, properties, headers } from "../../assets/api";
 import Explore from "./Explore";
 
 const ChatBox = ({ chatUser, setChatUser }) => {
-    const { name, username, profileImg, isOnline } = chatUser
+    const { name, username, profileImg } = chatUser
     const messageBoxRef = useRef(null);
     const [messages, setMessages] = useState([]);
     const { user } = useContext(UserContext);
     const { socket } = useContext(SocketContext);
     const { friends, setFriends } = useContext(HomeContext);
-
+    const [isOnline, SetIsOnline] = useState(false);
     console.log({ chatUser });
     useEffect(() => {
-        if (!username || username===undefined) return;
+        if (!username || username === undefined) return;
         let _stored_messages = JSON.parse(localStorage.getItem(`_messages_${username}`));
         setMessages([..._stored_messages])
     }, [username]);
-    
+
+  
+    useEffect(() => {
+        socket?.emit('check-online', { from: user?.username, check: username });
+    }, [username, socket])
+
+    socket?.on('check-online', ({ check, status }) => {
+        console.log({ status });
+        SetIsOnline(status);
+    })
 
     socket?.on('recieve-message', ({ sender, message, timeStamp }) => {
+        console.log({ message, sender, timeStamp });
         localStorage.setItem(`_messages_${username}`, JSON.stringify([...messages, { sender, message, timeStamp }]));
         setMessages([...messages, { sender, message, timeStamp }]);
     })
@@ -37,10 +47,10 @@ const ChatBox = ({ chatUser, setChatUser }) => {
             sender: user.username,
             to: username,
             message: newMessage,
-            timeStamp: new Date().toString()
+            timeStamp: (new Date()).getTime()
         });
-        localStorage.setItem(`_messages_${username}`, JSON.stringify([...messages, { sender: user.username, message: newMessage, timeStamp: new Date().toString() }]));
-        setMessages([...messages, { sender: user.username, message: newMessage, timeStamp: new Date().toString() }])
+        localStorage.setItem(`_messages_${username}`, JSON.stringify([...messages, { sender: user.username, message: newMessage, timeStamp: (new Date()).getTime() }]));
+        setMessages([...messages, { sender: user.username, message: newMessage, timeStamp: (new Date()).getTime() }])
         messageBoxRef.current.value = "";
     }
     const deleteUser = (e) => {
@@ -62,9 +72,9 @@ const ChatBox = ({ chatUser, setChatUser }) => {
     }
 
     return username ? (
-        <div className="column  is-vcentered px-0 py-0 mx-0" style={{ height: "90vh" }} >
-            <div className="block mx-0  has-background-dark is-flex has-flex-direction-row is-justify-content-space-between	" style={{
-                height: "50px",
+        <div className="column  is-vcentered   " style={{ height:'85vh' }} >
+            <div className="block mx-0  py-0 my-0 has-background-dark is-flex has-flex-direction-row is-justify-content-space-between	" style={{
+                height: "7vh",
                 borderBottom: "2px solid #7e5f5f"
             }}>
                 <Link to={`user/${username}`} className="is-flex has-flex-direction-row ">
@@ -73,10 +83,12 @@ const ChatBox = ({ chatUser, setChatUser }) => {
                     </figure>
                     <div className="content px-2 ">
                         <p className=" my-0 py-0 "   >
-                            <span className="is-size-6 has-text-light" >{name} </span>
+                            <span className="is-size-6 has-text-light" >{name} &nbsp;&nbsp;
+                                <span className="is-size-7 has-text-light" >({username}) </span>
+                            </span>
                         </p>
-                        <p className="is-size-6 my-0 py-0 has-text-success">
-                            &nbsp;{isOnline ? "Online" : ""}
+                        <p className={`is-size-6 my-0 py-0 has-text-${isOnline?'success':'danger'}`}>
+                            &nbsp;{isOnline ? "Online" : "Offline"}
                         </p>
                     </div>
                 </Link>
@@ -110,9 +122,9 @@ const ChatBox = ({ chatUser, setChatUser }) => {
                 </div>
             </div>
             {/* messages */}
-            <div className="container" style={{ height: "73vh", overflow: "auto" }}>
+            <div className="container" style={{ height: "72vh", overflowY: "auto" }}>
                 {messages?.map(({ message, sender, timeStamp }, index) => {
-                    const currentD_T = new Date(timeStamp)
+                    const currentD_T = new Date(+timeStamp)
                     let date = currentD_T.toLocaleDateString();
                     let time = currentD_T.toLocaleTimeString();
                     let status = date === prevDate;
@@ -141,7 +153,7 @@ const ChatBox = ({ chatUser, setChatUser }) => {
                 })}
                 <ScrollToBottom />
             </div>
-            <div className="container   has-background-dark px-0 is-vcentered is-flex has-flex-direction-row is-alignitems-center is-justify-content-space-around" >
+            <div className="container   has-background-dark px-0  py-0 my-0 is-vcentered is-flex has-flex-direction-row is-alignitems-center is-justify-content-space-around" >
                 <div className="field mt-2  px-2" style={{ width: "-webkit-fill-available " }} >
                     <div className="control has-icons-left has-icons-right">
                         <input className="input  " type="text" placeholder="Message" ref={messageBoxRef} />
@@ -150,7 +162,7 @@ const ChatBox = ({ chatUser, setChatUser }) => {
                         </span>
                     </div>
                 </div>
-                <button className="button is-primary is-normal px-6  my-2 mr-5  is-alignself-center" style={{ maxHeight: "40px" }} onClick={sendMessage}>Send</button>
+                <button className="button is-primary is-normal px-6  mt-2 mr-5  is-alignself-center" style={{ maxHeight: "40px" }} onClick={sendMessage}>Send</button>
 
             </div>
         </div>

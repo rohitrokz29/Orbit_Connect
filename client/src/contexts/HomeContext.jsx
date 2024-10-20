@@ -9,9 +9,11 @@ export const HomeContext = createContext();
 export const HomeState = ({ children }) => {
     const [friends, setFriends] = useState([]);
     const { user } = useContext(UserContext);
+    
     //fetch friends
     useEffect(() => {
         if (!user) return;
+
         const friendsList = [user.username]
         fetch(`${baseUrl}friends/${user.username}`, {
             method: "GET",
@@ -22,8 +24,6 @@ export const HomeState = ({ children }) => {
             .then(res => {
                 console.log({ res });
                 if (!res) return;
-                setFriends([...res]);
-
                 console.log(friendsList);
                 res?.forEach((friendData) => {
                     friendsList.push(friendData.username);
@@ -31,25 +31,28 @@ export const HomeState = ({ children }) => {
                         localStorage.setItem(`_messages_${friendData.username}`, JSON.stringify([]));
                     }
                 })
+                setFriends([...res]);
 
                 const friend_json_string = JSON.stringify(friendsList);
                 if (!localStorage.getItem('friends') || localStorage.getItem('friends') !== friend_json_string) {
-                    localStorage.setItem('friends', friend_json);
+                    localStorage.setItem('friends', friend_json_string);
                 }
             })
             .catch(err =>
-                setFriends([])
+                console.log(err)
             );
         if (!localStorage.getItem('friends')) {
             localStorage.setItem('friends', JSON.stringify(friendsList));
         }
-    }, [])
+    }, [user])
 
     useEffect(() => {
+        console.log({ friends });
+    }, [ friends])
+    useEffect(() => {
         if (!user) return;
-        const username = user[username]
-        const messages = {};
-        fetch(`${baseUrl}friends/${user.username}`, {
+        const username = user.username
+        fetch(`${baseUrl}messages/${user.username}`, {
             method: "GET",
             credentials: properties.credentials,
             headers
@@ -61,16 +64,29 @@ export const HomeState = ({ children }) => {
                 return res.json();
             })
             .then((res) => {
+                const messages = {};
                 res?.forEach(({ sender, message, timeStamp }) => {
                     if (!messages[sender]) {
                         messages[sender] = [];
                     }
-                    messages[sender].push({ sender, message, timeStamp: new Date(+timeStamp).toString() })
-                    /**
-                     * 
-                     * COMPLETE THIS LOGIC TO SET MESSAGES AFTER FETCHING
-                     */
+                    messages[sender].push({ sender, message, timeStamp })
                 })
+                return messages;
+            })
+            .then((messages) => {
+                console.log({ messages });
+                for (let username in messages) {
+                    messages[username] = messages[username].sort((a, b) => {
+                        return +a.timeStamp - (+b.timeStamp);
+                    })
+                    if (!localStorage.getItem(`_messages_${username}`)) {
+                        localStorage.setItem(`_messages_${user}`, JSON.stringify(messages[username]));
+                        continue;
+                    }
+                    let prevMessages = JSON.parse(localStorage.getItem(`_messages_${username}`));
+                    
+                    localStorage.setItem(`_messages_${username}`, JSON.stringify([...prevMessages, ...messages[username]]));
+                }
             })
             .catch((err) => {
                 console.log(err);

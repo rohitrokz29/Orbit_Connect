@@ -28,8 +28,10 @@ const Home = () => {
     return (
         <>
             <Navbar setChatUser={setChatUser} />
-            <div className="columns pt-6 mt-2">
-                <div className="column has-background-grey ml-3   is-4  " style={{
+            <div className="columns  " style={{
+                height: '90vh', marginTop: '10vh', position: "sticky"
+            }}>
+                <div className="column has-background-grey ml-3   is-4  pt-5 " style={{
                     paddingLeft: "1.5rem",
                     height: '90vh', overflowX: "auto"
                 }} >
@@ -71,6 +73,7 @@ const Home = () => {
 
                     {
                         friends.length > 0 && searchFriends.length === 0 && friends.map(({ username, name, profileImg, isOnline }, index) => {
+
                             const newChatUser = (e) => {
                                 e.preventDefault();
                                 console.log("seting char user");
@@ -101,7 +104,7 @@ export default Home;
 export const Navbar = ({ setChatUser }) => {
 
     const { user, SignOut } = useContext(UserContext);
-    return (<nav className="navbar is-fixed-top px-1  	" style={{ borderBottom: "2px solid #fff" }} role="navigation" aria-label="main navigation">
+    return (<nav className="navbar is-fixed-top px-1  	" style={{ height: "10vh", borderBottom: "2px solid #fff" }} role="navigation" aria-label="main navigation">
         <div className="navbar-brand">
             <Link className="is-size-3 " to='/'><strong>Orbit Connect</strong></Link>
             <a role="button" className="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarElements">
