@@ -8,7 +8,7 @@ const setSocketIdOfUser = ({ username, socketId }) => {
 }
 
 const removeSocketIdOfUser = ({ username }) => {
-    delete socketIds.username;
+    delete socketIds[username];
     console.log({ socketIds });
 }
 

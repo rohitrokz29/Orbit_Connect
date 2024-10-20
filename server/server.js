@@ -49,22 +49,38 @@ io.on('connection', (socket) => {
   const username = socket.handshake.query.signedinUser;
   console.log({ username, "socketId": socket.id });
   setSocketIdOfUser({ username, socketId: socket.id });
-
+  console.log({ socketIds });
   socket.on('disconnect', () => {
     removeSocketIdOfUser({ username })
     console.log(`dicosnnected socket ${{ username, "socketId": socket.id }}`);
 
   })
 
-  socket.on("send-message", async ({ message, sender, to, timeStamp }) => {
-    if (!socketIds.to) {
-      const result = await sendPending({ message, to, sender, timeStamp });
+  socket.on('check-online', ({ check, from }) => {
+
+    io.to(socketIds[from]).emit('check-online', { check, status: socketIds[check] ? true : false });
+  })
+
+  socket.on("send-message", ({ message, sender, to, timeStamp }) => {
+    console.log({ message, sender, to, timeStamp });
+    if (socketIds[to]) {
+      try {
+        io.to(socketIds[to]).emit("recieve-message", { message, sender, timeStamp })
+      } catch (error) {
+        const result = sendPending({ message, to, sender, timeStamp });
+        if (result) {
+          io.to(socketIds[sender]).emit('error', 'Message not Sent , Some Error Occured');
+
+        }
+
+      }
+    } else {
+      const result = sendPending({ message, to, sender, timeStamp });
       if (result) {
         io.to(socketIds[sender]).emit('error', 'Message not Sent , Some Error Occured');
       }
+
     }
-    else
-      io.to(socketIds[to]).emit("recieve-message", { message, sender, timeStamp })
   })
 })
 

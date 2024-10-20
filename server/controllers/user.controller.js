@@ -300,13 +300,22 @@ const FetchPendingMessages = async (req, res) => {
         database.query(
             `SELECT sender,message,timeStamp FROM pending WHERE reciever=? ;`,
             [username],
-            (err, result) => {
+            (err, messages) => {
                 if (err) {
                     res.status(400).json({ message: "Server Error" });
                     return;
                 }
-                console.log(result);
-                res.status(200).json(result);
+                database.query(
+                    'DELETE FROM pending WHERE reciever=?;', [username],
+                    (err, result) => {
+                        if (err) {
+                            res.status(400).json({ message: "Server Error" });
+                            return;
+                        }
+                        res.status(200).json(messages);
+                    }
+                )
+                console.log(messages);
 
             }
         )
