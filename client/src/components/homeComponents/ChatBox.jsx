@@ -15,8 +15,8 @@ const ChatBox = ({ chatUser, setChatUser }) => {
     const { socket } = useContext(SocketContext);
     const { friends, setFriends } = useContext(HomeContext);
     const [isOnline, SetIsOnline] = useState(false);
-    console.log({ chatUser });
     useEffect(() => {
+        console.log({chatUser});
         if (!username || username === undefined) return;
         let _stored_messages = JSON.parse(localStorage.getItem(`_messages_${username}`));
         setMessages([..._stored_messages])

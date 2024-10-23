@@ -9,7 +9,7 @@ export const HomeContext = createContext();
 export const HomeState = ({ children }) => {
     const [friends, setFriends] = useState([]);
     const { user } = useContext(UserContext);
-    
+    const [request, setRequest] = useState([]);
     //fetch friends
     useEffect(() => {
         if (!user) return;
@@ -48,7 +48,7 @@ export const HomeState = ({ children }) => {
 
     useEffect(() => {
         console.log({ friends });
-    }, [ friends])
+    }, [friends])
     useEffect(() => {
         if (!user) return;
         const username = user.username
@@ -84,20 +84,39 @@ export const HomeState = ({ children }) => {
                         continue;
                     }
                     let prevMessages = JSON.parse(localStorage.getItem(`_messages_${username}`));
-                    
+
                     localStorage.setItem(`_messages_${username}`, JSON.stringify([...prevMessages, ...messages[username]]));
                 }
             })
             .catch((err) => {
                 console.log(err);
             });
+    }, []);
+
+    useEffect(() => {
+        fetch(`${baseUrl}request/${user.username}`, {
+            method: "GET",
+            credentials: properties.credentials,
+            headers
+        }).then(res => {
+            if (res.status === 200) return res.json();
+
+            return null;
+        })
+            .then(res => {
+                if (!res) return;
+                setRequest([...res]);
+            })
     }, [])
+
 
 
     return (
         <HomeContext.Provider value={{
             friends,
-            setFriends
+            setFriends,
+            request,
+            setRequest
         }}>
             {children}
         </HomeContext.Provider>

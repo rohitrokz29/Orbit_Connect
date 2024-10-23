@@ -21,7 +21,7 @@ const Profile = () => {
 
     useEffect(() => {
         const frindsList = JSON.parse(localStorage.getItem('friends'));
-        if (frindsList.includes(profile_name)) {
+        if (frindsList?.includes(profile_name)) {
             setIsFrined(true);
         }
     }, [profile_name]);
@@ -74,7 +74,8 @@ const Profile = () => {
     }, [isFrined])
 
     const SendRequest = () => {
-        if (!user) return;
+        let list = JSON.parse(localStorage.getItem('friend_request'));
+        if ( isRequested || !user) return
         console.log("Req sent");
         fetch(`${baseUrl}sendRequest`, {
             method: "POST",
@@ -84,7 +85,7 @@ const Profile = () => {
         })
             .then(res => {
                 console.log(res);
-                if (res.status===200) {
+                if (res.status === 200) {
                     return true;
                 }
                 return false;
@@ -92,17 +93,17 @@ const Profile = () => {
             .then(res => {
                 console.log(res);
                 if (!res) return;
-                if (localStorage.getItem('friend_requests')) {
-                    let list = JSON.parse(localStorage.getItem('friend_request'));
-                    list.unshift(profile_name);
-                    localStorage.setItem('friend_request', list);
+                if (list) {
+                    list.push(profile_name);
                 }
                 else {
-                    localStorage.setItem('friend_request', [profile_name]);
+                    list = [profile_name]
                 }
+                localStorage.setItem('friend_request', JSON.stringify(list));
+
                 setIsRequested(true)
             })
-            .catch(err=>{
+            .catch(err => {
                 console.log(err);
             })
     }
@@ -146,7 +147,7 @@ const Profile = () => {
                                 <div className="container is-flex is-flex-direction-row	is-justify-content-center	 ">
 
                                     {!isFrined && <div className="content">
-                                        <button className="button is-link" onClick={!isRequested ? SendRequest : ''}>{isRequested ? "Requested" : "Add Friend"}</button>
+                                        <button className="button is-link" onClick={SendRequest}>{isRequested ? "Requested" : "Add Friend"}</button>
                                     </div>
                                     }
                                 </div>

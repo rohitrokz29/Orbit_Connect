@@ -201,15 +201,33 @@ const SendFriendRequest = async (req, res) => {
         const { sender, reciever } = req.body;
         database.query('INSERT INTO request VALUES(?,?);', [sender, reciever],
             (err, result) => {
-                if (err || result.affectedRows===0) {
+                console.log({ err, result });
+                if (err || result.affectedRows === 0) {
                     res.status(404).json({ message: "Not Found" });
                     return;
                 }
-                res.status(200).json({message:"Request Sent"});
+                res.status(200).json({ message: "Request Sent" });
             }
         )
     } catch (error) {
         res.status(404).json({ message: "Not Found" });
+    }
+}
+
+const GetRequests = async (req, res) => {
+    try {
+        const { username } = req.params;
+        database.query('SELECT sender FROM request WHERE reciever=?;', [username],
+            (err, result) => {
+                if (err) {
+                    res.status(400).json({ message: "Not Found" });
+                    return;
+                }
+                res.status(200).json(result);
+            }
+        )
+    } catch (error) {
+        res.status(400).json({ message: "Not Found" });
     }
 }
 
@@ -226,22 +244,24 @@ const AddFriend = async (req, res) => {
                 }
                 if (countResult[0]['COUNT(user1)'] !== 0) {
                     res.status(201).json({ message: "Alreadyy friend" })
+                    return;
                 }
                 database.query(
-                    'INSERT INTO friends VALUES (?,?);',
-                    [user1, user2],
+                    `INSERT INTO friends VALUES ('${user1}','${user2}');DELETE FROM request WHERE sender ='${user2}' AND reciever='${user1}';`,
+
                     (err, result) => {
                         if (err) {
                             console.log(err);
                             res.status(401).json({ message: "Server Error" });
                             return;
                         }
-                        if (result?.affectedRows !== 1) {
+                        if (result[0]?.affectedRows !== 1) {
                             console.log(result);
                             res.status(200).json({ message: "Server Error" });
                             return;
                         }
-                        res.status(200).json({ message: "Added" })
+                        res.status(200).json({ message: "Added" });
+
                     }
                 )
             }
@@ -565,5 +585,6 @@ module.exports = {
     LikeAndDislikePost,
     FetchPendingMessages,
     TopPosts,
-    SendFriendRequest
+    SendFriendRequest,
+    GetRequests
 }

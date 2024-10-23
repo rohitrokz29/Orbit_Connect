@@ -104,6 +104,24 @@ export default Home;
 export const Navbar = ({ setChatUser }) => {
 
     const { user, SignOut } = useContext(UserContext);
+    const { request, setRequest } = useContext(HomeContext);
+
+    const AddFriend = ({ user2 }) => {
+        fetch(`${baseUrl}addFriend`, {
+            method: "POST",
+            body: JSON.stringify({ user1: user.username, user2 }),
+            headers,
+            credentials: properties.credentials
+        }).then(res => {
+            if (res.status === 200) return res.json();
+            return null;
+        })
+            .then(res => {
+                if (!res) return;
+                let list = request.filter(item => item != user2);
+                setRequest([...list]);
+            }).catch(err=>console.log(err));
+    }
     return (<nav className="navbar is-fixed-top px-1  	" style={{ height: "10vh", borderBottom: "2px solid #fff" }} role="navigation" aria-label="main navigation">
         <div className="navbar-brand">
             <Link className="is-size-3 " to='/'><strong>Orbit Connect</strong></Link>
@@ -119,6 +137,32 @@ export const Navbar = ({ setChatUser }) => {
             <div className="navbar-end">
                 <Link className="navbar-item has-text-light is-size-6 px-5">Home</Link>
                 <p className="navbar-item has-text-light is-size-6 px-5" style={{ cursor: "pointer" }} onClick={(e) => setChatUser({})} >Explore</p>
+                <div className="navbar-item has-dropdown is-hoverable">
+                    <div className="navbar-link">
+                        Requests
+                    </div>
+
+                    <div className="navbar-dropdown" style={{ width: "25vw" }}>
+                        {request?.length > 0 ?
+                            request.map(({ sender }, index) => {
+                                const tempFun=()=>{
+                                    AddFriend({user2:sender});
+                                }
+                                return (
+                                    <p key={index} className="navbar-item">
+                                        <Link  to={`/user/${sender}`} className="px-2">{sender}</Link>
+                                        <button className="button is-success" onClick={tempFun}>Accept</button>
+                                    </p>
+                                )
+                            }) :
+                            <p className="navbar-item">
+                                <p className="px-2">No Requests</p>
+                            </p>
+                        }
+
+
+                    </div>
+                </div>
                 <div className="navbar-item px-2 mr-6 py-0 my-0  has-dropdown  is-hoverable">
                     <Link className="navbar-link is-arrowless py-0  ">
                         <figure className="image py-0 ">
@@ -134,7 +178,7 @@ export const Navbar = ({ setChatUser }) => {
                     <div className="navbar-dropdown px-0 pt-1  ">
                         <Link className="navbar-item has-text-centered  has-background-primary-40	has-text-dark 	is-size-6" style={
                             {
-                                border: "1px solid rgb(200,0,0);",
+                                border: "1px solid rgb(200,0,0)",
                                 borderRadius: " 5px",
                             }
                         } to={`/user/${user.username}`}>

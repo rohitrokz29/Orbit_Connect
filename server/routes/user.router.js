@@ -17,7 +17,8 @@ const {
     AddPost,
     FetchPendingMessages,
     TopPosts,
-    SendFriendRequest
+    SendFriendRequest,
+    GetRequests
 } = require("../controllers/user.controller");
 
 const userRouter = Router();
@@ -36,6 +37,8 @@ userRouter.post("/reset/:id", ResetPassword);
 userRouter.post('/addFriend', AddFriend);
 
 userRouter.post('/sendRequest',SendFriendRequest);
+
+userRouter.get('/request/:username',GetRequests);
 
 userRouter.get('/friends/:username', FetchFriends);
 
