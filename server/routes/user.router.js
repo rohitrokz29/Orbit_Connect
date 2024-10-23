@@ -15,7 +15,9 @@ const {
     FetchPosts,
     LikeAndDislikePost,
     AddPost,
-    FetchPendingMessages
+    FetchPendingMessages,
+    TopPosts,
+    SendFriendRequest
 } = require("../controllers/user.controller");
 
 const userRouter = Router();
@@ -33,6 +35,8 @@ userRouter.post("/reset/:id", ResetPassword);
 
 userRouter.post('/addFriend', AddFriend);
 
+userRouter.post('/sendRequest',SendFriendRequest);
+
 userRouter.get('/friends/:username', FetchFriends);
 
 userRouter.post('/delete/friend', DeleteFriend);
@@ -42,12 +46,14 @@ userRouter.get('/search/:searchParam/:username', Search);
 userRouter.get('/user/:username', UserProfile);
 
 userRouter.get('/messages/:username', FetchPendingMessages);
-
+ 
 userRouter.post('/edit', EditUser);
 
 userRouter.get('/posts/:username', FetchPosts);
 
 userRouter.post('/posts/:username', AddPost);
+
+userRouter.get('/topPost/:username',TopPosts);
 
 userRouter.post('/like/:postID', LikeAndDislikePost);
 

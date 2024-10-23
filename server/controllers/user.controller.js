@@ -196,6 +196,23 @@ const ResetPassword = async (req, res) => {
     }
 }
 
+const SendFriendRequest = async (req, res) => {
+    try {
+        const { sender, reciever } = req.body;
+        database.query('INSERT INTO request VALUES(?,?);', [sender, reciever],
+            (err, result) => {
+                if (err || result.affectedRows===0) {
+                    res.status(404).json({ message: "Not Found" });
+                    return;
+                }
+                res.status(200).json({message:"Request Sent"});
+            }
+        )
+    } catch (error) {
+        res.status(404).json({ message: "Not Found" });
+    }
+}
+
 const AddFriend = async (req, res) => {
     try {
         const { user1, user2 } = req.body;
@@ -430,7 +447,7 @@ const AddPost = async (req, res) => {
                 console.log(result);
                 if (err) res.status(400).json({ message: "Post Not Added" });
 
-                res.status(200).json({ message: "Post Added" });
+                res.status(200).json({ id, post_data, timestamp, likes: 0, dislikes: 0, username });
             }
         )
     } catch (error) {
@@ -466,6 +483,25 @@ const FetchPosts = async (req, res) => {
     } catch (error) {
         res.status(400).json({ message: error.message });
         return
+    }
+}
+
+const TopPosts = async (req, res) => {
+    try {
+        const { username } = req.params;
+        database.query(
+            'SELECT * FROM posts WHERE username =? ORDER BY likes DESC LIMIT 5', [username],
+            (err, result) => {
+                console.log({ err, result });
+                if (err || result.length === 0) {
+                    res.status(202).json({ message: "Not Found" })
+                    return;
+                }
+                res.status(200).json(result)
+            }
+        )
+    } catch (error) {
+        res.status(400).json({ message: "Server Error" });
     }
 }
 
@@ -527,5 +563,7 @@ module.exports = {
     AddPost,
     FetchPosts,
     LikeAndDislikePost,
-    FetchPendingMessages
+    FetchPendingMessages,
+    TopPosts,
+    SendFriendRequest
 }
