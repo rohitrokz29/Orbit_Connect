@@ -1,13 +1,30 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { baseUrl, headers, properties, } from "../assets/api";
 import { useLocation } from "react-router-dom";
 import { profiles } from './homeComponents/helpers'
+import Image from '../assets/images/profile.png'
+import NoPost from '../assets/images/nopost.jpeg'
 import { Navbar } from "./Home";
+import { PostsBox } from "./homeComponents/Explore";
+import { UserContext } from "../contexts/UserContext";
+
+
 const Profile = () => {
+    const { user } = useContext(UserContext);
     const location = useLocation();
+
     const profile_name = location.pathname.split('/').at(2)
     const [profile, setProfile] = useState({});
     const [isFrined, setIsFrined] = useState(false);
+    const [topPost, setTopPost] = useState([]);
+    const [isRequested, setIsRequested] = useState(false);
+
+    useEffect(() => {
+        const frindsList = JSON.parse(localStorage.getItem('friends'));
+        if (frindsList.includes(profile_name)) {
+            setIsFrined(true);
+        }
+    }, [profile_name]);
 
     useEffect(() => {
         fetch(`${baseUrl}user/${profile_name}`, {
@@ -27,13 +44,68 @@ const Profile = () => {
                 console.log(err);
             });
     }, []);
-    useEffect(() => {
-        const frindsList = JSON.parse(localStorage.getItem('friends'));
-        if (frindsList?.includes(profile_name)) {
-            setIsFrined(true);
-        }
-    }, [])
 
+    useEffect(() => {
+        if (!isFrined) {
+            let list = JSON.parse(localStorage.getItem('friend_request'));
+            if (list && list.includes(profile_name)) setIsRequested(true);
+
+            return;
+        }
+        fetch(`${baseUrl}topPost/${profile_name}`, {
+            method: "GET",
+            headers,
+            credentials: properties.credentials
+        })
+            .then(res => {
+                if (res.status === 200) return res.json();
+                return null;
+            })
+            .then(res => {
+                console.log(res);
+                if (!res) return;
+                setTopPost([...res]);
+            })
+            .catch(err => {
+                console.log(err);
+                setTopPost([]);
+            })
+
+    }, [isFrined])
+
+    const SendRequest = () => {
+        if (!user) return;
+        console.log("Req sent");
+        fetch(`${baseUrl}sendRequest`, {
+            method: "POST",
+            body: JSON.stringify({ sender: user.username, reciever: profile_name }),
+            headers,
+            credentials: properties.credentials
+        })
+            .then(res => {
+                console.log(res);
+                if (res.status===200) {
+                    return true;
+                }
+                return false;
+            })
+            .then(res => {
+                console.log(res);
+                if (!res) return;
+                if (localStorage.getItem('friend_requests')) {
+                    let list = JSON.parse(localStorage.getItem('friend_request'));
+                    list.unshift(profile_name);
+                    localStorage.setItem('friend_request', list);
+                }
+                else {
+                    localStorage.setItem('friend_request', [profile_name]);
+                }
+                setIsRequested(true)
+            })
+            .catch(err=>{
+                console.log(err);
+            })
+    }
     return (
         <>
             <div className="container mt-6 pt-4 columns">
@@ -74,7 +146,7 @@ const Profile = () => {
                                 <div className="container is-flex is-flex-direction-row	is-justify-content-center	 ">
 
                                     {!isFrined && <div className="content">
-                                        <button className="button is-link">Add Friend</button>
+                                        <button className="button is-link" onClick={!isRequested ? SendRequest : ''}>{isRequested ? "Requested" : "Add Friend"}</button>
                                     </div>
                                     }
                                 </div>
@@ -104,12 +176,35 @@ const Profile = () => {
                             </div>
                         </div>
                         <div className="level-item has-text-centered">
-                            <div> 
+                            <div>
                                 <p className="heading">Profile Visits</p>
                                 <p className="title">{profile.visits ? profile.visits : 0}</p>
                             </div>
                         </div>
                     </nav>
+                    <div className="container mt-4 " style={{ height: "40vh", overflowY: 'auto' }}>
+                        {
+                            isFrined && topPost.length > 0 ?
+                                topPost?.map(({ username, post_data, timestamp, likes, dislikes, id }, index) => {
+                                    return <PostsBox key={index}
+                                        id={id}
+                                        username={username}
+                                        post_data={post_data}
+                                        timestamp={timestamp}
+                                        likes={likes}
+                                        dislikes={dislikes} />
+                                })
+                                : <img src={isFrined ? NoPost : Image} style={!isFrined ? {
+                                    filter: "blur(5px)"
+                                } : {
+                                    width: '40vw',
+                                    marginInline: "5rem"
+
+                                }} alt="Blurred Example" className="image" />
+
+
+                        }
+                    </div>
                 </div>
             </div>
         </>

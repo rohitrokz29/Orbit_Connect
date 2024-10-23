@@ -131,11 +131,21 @@ export const Navbar = ({ setChatUser }) => {
                             }} className="is-rounded" alt="" />
                         </figure>
                     </Link>
-                    <div className="navbar-dropdown px-0  ">
-                        <Link className="navbar-item has-text-centered  has-background-primary-40	has-text-dark	is-size-6" to={`/user/${user.username}`}>
+                    <div className="navbar-dropdown px-0 pt-1  ">
+                        <Link className="navbar-item has-text-centered  has-background-primary-40	has-text-dark 	is-size-6" style={
+                            {
+                                border: "1px solid rgb(200,0,0);",
+                                borderRadius: " 5px",
+                            }
+                        } to={`/user/${user.username}`}>
                             Profile
                         </Link>
-                        <Link className="navbar-item has-text-centered has-background-primary-40	has-text-dark is-size-6	" onClick={SignOut}>
+                        <Link className="navbar-item has-text-centered has-background-primary-40	my-1 has-text-dark is-size-6	" style={
+                            {
+                                border: "1px solid rgb(200,0,0)",
+                                borderRadius: " 5px",
+                            }
+                        } onClick={SignOut}>
                             SignOut
                         </Link>
                     </div>
