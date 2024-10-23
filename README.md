@@ -22,7 +22,7 @@ Here're some of the project's best features:
 *   Track social activity
 *   Efficient user search
 
-<h2>🛠️ Installation Steps:</h2>
+<h2>🛠️ Installation Steps (Linux):</h2>
 
 <p>1. Installing the client packages</p>
 
